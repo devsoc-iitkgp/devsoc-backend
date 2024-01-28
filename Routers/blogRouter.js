@@ -1,5 +1,5 @@
 const express = require("express")
-const { getBlogs, getBlogBySlug } = require("../Controllers/blogs")
+const { getBlogs, getBlogBySlug, createBlog, updateBlog, deleteBlog } = require("../Controllers/blogs")
 
 const blogsRouter = express.Router()
 

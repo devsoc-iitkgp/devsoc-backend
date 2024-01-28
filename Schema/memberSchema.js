@@ -7,7 +7,7 @@ const memberSchema = new Schema({
         required: [true, 'Name is required'],
     },
     socialMediaHandles: {
-        type: Array[String],
+        type: [String],
         required: true,
         default: []
     },
@@ -47,4 +47,4 @@ const memberSchema = new Schema({
     }
 });
 
-export default mongoose.model('Member', memberSchema);
+exports.Member = mongoose.models.member || mongoose.model('Member', memberSchema);

@@ -1,24 +1,28 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const uniqueValidator = require('mongoose-unique-validator');
 
 const userSchema = new Schema({
     name: {
         type: String,
         required: [true, 'Name is required']
     },
-    mobNum: {
+    mobile: {
         type: Number,
-        required: [true, 'Mobile Number is required']
+        required: [true, 'Mobile Number is required'],
+        unique: true
     },
     email: {
         type: String,
-        required: [true, 'Email is required']
+        required: [true, 'Email is required'],
+        unique: true
     },
     password: {
         type: String,
-        required: [true, 'Password is required']
+        required: [true, 'Password is required'],
+        select: false
     },
-    instituteName: {
+    institute: {
         type: String,
         required: [true, 'Institute Name is required']
     },
@@ -27,12 +31,7 @@ const userSchema = new Schema({
         required: [true, 'Year of Study is required']
     },
     interests: {
-        type: Array[String],
-        required: true,
-        default: []
-    },
-    projects: {
-        type: Array[Schema.Types.ObjectId],
+        type: [String],
         required: true,
         default: []
     },
@@ -42,20 +41,16 @@ const userSchema = new Schema({
         default: false
     },
     bookmarks: {
-        type: Array[Schema.Types.ObjectId],
+        type: [Schema.Types.ObjectId],
         required: true,
-        default: []
+        default: [],
+        ref: "project"
     }
 }, {
     virtuals: {
         id: {
             get() {
-                return this.id
-            }
-        },
-        totalMembers: {
-            get() {
-                return this.members?.length
+                return this._id
             }
         }
     },
@@ -74,7 +69,9 @@ const userSchema = new Schema({
             delete ret._id;
             return ret;
         }
-    }
+    },
 });
 
-export default mongoose.model('User', userSchema);
+userSchema.plugin(uniqueValidator, { error: '{PATH} already exists' })
+
+exports.User = mongoose.models.user || mongoose.model("user", userSchema)

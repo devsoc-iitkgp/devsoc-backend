@@ -1,0 +1,50 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  mobile       String      
+  email        String   @unique
+  password     String
+  institute    String
+  yearOfStudy  Int
+  interests    String[] 
+  isAdmin      Boolean
+
+  // Relations
+  bookmarks    Project[] @relation("UserBookmarks") // Projects bookmarked by the user
+  projects     Project[] @relation("UserProjects")  // Projects owned by the user
+  memberOf     Project[] @relation("ProjectMembers") // Projects where the user is a member
+  requests     Project[] @relation("ProjectRequests") // Projects where the user has requested to join
+
+}
+
+model Project {
+  id           Int       @id @default(autoincrement())
+  slug         String    @unique @default("")
+  projectName  String    @db.VarChar(50)
+  description  String    @db.VarChar(700)
+  tags         String[]
+  capacity     Int
+  thumbnail    String
+  buttonClicks Int       @default(1)
+
+  // Timestamps
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamp(6)
+
+  // Relations
+  owner        User      @relation("UserProjects", fields: [ownerId], references: [id]) // Owner of the project
+  ownerId      Int
+  members      User[]    @relation("ProjectMembers")  // Users who are members
+  requests     User[]    @relation("ProjectRequests") // Users who have requested to join
+  bookmarkedBy User[]    @relation("UserBookmarks")   // Users who have bookmarked the project
+}

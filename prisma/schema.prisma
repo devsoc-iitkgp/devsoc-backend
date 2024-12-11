@@ -10,6 +10,7 @@ datasource db {
 
 model User {
   id           Int      @id @default(autoincrement())
+  username     String   @unique
   name         String
   mobile       String      
   email        String   @unique
@@ -24,7 +25,7 @@ model User {
   projects     Project[] @relation("UserProjects")  // Projects owned by the user
   memberOf     Project[] @relation("ProjectMembers") // Projects where the user is a member
   requests     Project[] @relation("ProjectRequests") // Projects where the user has requested to join
-
+  blogs        Blog[] @relation("UserBlogs")         //Blogs owned by the user 
 }
 
 model Project {
@@ -47,4 +48,21 @@ model Project {
   members      User[]    @relation("ProjectMembers")  // Users who are members
   requests     User[]    @relation("ProjectRequests") // Users who have requested to join
   bookmarkedBy User[]    @relation("UserBookmarks")   // Users who have bookmarked the project
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  blogName  String
+  slug      String   @unique
+  content   String
+  tagline   String
+  thumbnail String
+  author    String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  //Relations
+
+  owner        User      @relation("UserBlogs", fields: [ownerId], references: [id]) // Owner of the project
+  ownerId      Int
 }

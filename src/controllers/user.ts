@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-const prismaClient = new PrismaClient();
+const client = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || "defaultsecretkey"; 
 const signup = async (req: Request, res: Response) => {
@@ -16,8 +16,14 @@ const signup = async (req: Request, res: Response) => {
         if (!parseResult.success) {
             return res.status(400).json({ message: "Invalid Inputs", success:false});
         }
-        const { name, mobile, email, password, institute, yearOfStudy, interests, isAdmin } = parseResult.data;
-        const existingUser = await prismaClient.user.findUnique({
+        const { name, username, mobile, email, password, institute, yearOfStudy, interests, isAdmin } = parseResult.data;
+        if (!email.endsWith("@iitkgp.ac.in")) {
+            return res.status(400).json({
+                message: "Email must end with @iitkgp.ac.in",
+                success: false,
+            });
+        }
+        const existingUser = await client.user.findUnique({
             where: { email },
         });
         if (existingUser) {
@@ -25,9 +31,10 @@ const signup = async (req: Request, res: Response) => {
         }
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const newUser = await prismaClient.user.create({
+        const newUser = await client.user.create({
             data: {
                 name,
+                username,
                 mobile,
                 email,
                 password: hashedPassword,
@@ -37,7 +44,7 @@ const signup = async (req: Request, res: Response) => {
                 isAdmin,
             },
         });
-        const token = jwt.sign({ id: newUser.id }, JWT_SECRET, { expiresIn: "1h" }); // Generate a JWT token for the new user
+        const token = jwt.sign({ id: newUser.id }, JWT_SECRET, { expiresIn: "1h" }); 
         return res.status(201).json({
             message: "User registered successfully",
             user: { id: newUser.id, email: newUser.email },
@@ -61,7 +68,13 @@ const signup = async (req: Request, res: Response) => {
             });
         }
         const { email, password } = parseResult.data;
-        const user = await prismaClient.user.findUnique({
+        if (!email.endsWith("@iitkgp.ac.in")) {
+            return res.status(400).json({
+                message: "Email must end with @iitkgp.ac.in",
+                success: false,
+            });
+        }
+        const user = await client.user.findUnique({
             where: { email }
         });
 
@@ -118,7 +131,7 @@ const userUpdate = async (req: Request, res: Response) => {
             const saltRounds = 10;
             parseResult.data.password = await bcrypt.hash(parseResult.data.password, saltRounds);
         }
-        const updatedUser = await prismaClient.user.update({
+        const updatedUser = await client.user.update({
             where: { id: userId },
             data: parseResult.data, 
         });
@@ -140,7 +153,7 @@ const addBookmark = async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, message: "Project ID is required" });
     }
     try {
-        const updatedUser = await prismaClient.user.update({
+        const updatedUser = await client.user.update({
             where: { id: userId },
             data: {
                 bookmarks: {
@@ -164,7 +177,7 @@ const removeBookmark = async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, message: "Project ID is required" });
     }
     try {
-        const updatedUser = await prismaClient.user.update({
+        const updatedUser = await client.user.update({
             where: { id: userId },
             data: {
                 bookmarks: {

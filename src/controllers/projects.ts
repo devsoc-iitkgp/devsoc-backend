@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { createProjectSchema, updateProjectSchema } from "../Validation/ZodValidation"; // Assuming validation file
 
-const prismaClient = new PrismaClient();
+const client = new PrismaClient();
 
 const generateSlug = (projectName: string): string => {
     return projectName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
@@ -20,7 +20,7 @@ const createProject = async (req: Request, res: Response) => {
         }
         const { projectName, description, tags, capacity, thumbnail } = parseResult.data;
         const slug = generateSlug(projectName);
-        const existingProject = await prismaClient.project.findFirst({
+        const existingProject = await client.project.findFirst({
             where: {
                 slug: slug,
             },
@@ -31,7 +31,7 @@ const createProject = async (req: Request, res: Response) => {
                 message: "A project with this name already exists for the user",
             });
         }
-        const project = await prismaClient.project.create({
+        const project = await client.project.create({
             data: {
                 projectName,
                 description,
@@ -67,7 +67,7 @@ const updateProject = async (req: Request, res: Response) => {
                 message: "Error while validating inputs", 
             });
         }
-        const project = await prismaClient.project.findUnique({
+        const project = await client.project.findUnique({
             where: { slug:slug },
         });
         if (!project) {
@@ -86,7 +86,7 @@ const updateProject = async (req: Request, res: Response) => {
         if (updatedData.projectName && updatedData.projectName !== project.projectName) {
             updatedData.slug = generateSlug(updatedData.projectName); // Add slug generation
         }
-        const updatedProject = await prismaClient.project.update({
+        const updatedProject = await client.project.update({
             where: { slug:slug },
             data: updatedData, 
         });
@@ -108,7 +108,7 @@ const deleteProject = async (req: Request, res: Response) => {
     const userId = req.user.id;
     const slug = req.params.slug; 
     try {
-        const project = await prismaClient.project.findUnique({
+        const project = await client.project.findUnique({
             where: { slug: slug }, 
         });
         if (!project) {
@@ -123,7 +123,7 @@ const deleteProject = async (req: Request, res: Response) => {
                 message: "You are not authorized to delete this project",
             });
         }
-        await prismaClient.project.delete({
+        await client.project.delete({
             where: { slug: slug }, 
         });
         return res.status(200).json({
@@ -140,9 +140,9 @@ const deleteProject = async (req: Request, res: Response) => {
 };
 
 
-const fetchAllProjects = async (req: Request, res: Response) => {
+const getAllProjects = async (req: Request, res: Response) => {
     try {
-        const allProjects = await prismaClient.project.findMany(); 
+        const allProjects = await client.project.findMany(); 
         res.status(200).json({
             success: true,
             data: allProjects,
@@ -156,10 +156,30 @@ const fetchAllProjects = async (req: Request, res: Response) => {
     }
 };
 
+const getMyProjects = async (req: Request, res: Response) => {
+    const userId = req.user.id; 
+    try {
+        const myprojects = await client.project.findMany({
+            where: { ownerId: userId },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Projects fetched successfully",
+            data: myprojects,
+        });
+    } catch (error) {
+        console.error("Error while fetching user projects:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+
 const getProjectBySlug = async (req:Request, res:Response) => {
     try {
         const slug = req.params.slug;
-        const project = await prismaClient.project.findUnique({
+        const project = await client.project.findUnique({
             where: { slug: slug },
         });
         if (!project) {
@@ -181,7 +201,39 @@ const getProjectBySlug = async (req:Request, res:Response) => {
     }
 };
 
+const getUserProjects = async (req: Request, res: Response) => {
+    try {
+        const username = req.params.username;
+        const user = await client.user.findUnique({
+            where: {
+                username: username,
+            },
+        });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Username not found",
+            });
+        }
+        const userId = user.id;
+        const projects = await client.project.findMany({
+            where: {
+                ownerId: userId,
+            },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Projects fetched successfully",
+            data: projects,
+        });
+    } catch (error) {
+        console.error("Error fetching user projects:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
 
 
-
-export {createProject,updateProject,deleteProject,fetchAllProjects,getProjectBySlug}
+export {createProject,updateProject,deleteProject,getAllProjects,getProjectBySlug,getMyProjects,getUserProjects}

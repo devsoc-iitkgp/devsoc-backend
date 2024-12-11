@@ -14,27 +14,27 @@ declare global {
     }
 }
 
-const prismaClient = new PrismaClient();
+const client = new PrismaClient();
 async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
         const authHeader = req.header("Authorization");
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(403).json({ message: "No token provided or incorrect format", success: false });
         }
-        const token = authHeader.split(" ")[1]; // Extract token after "Bearer"
+        const token = authHeader.split(" ")[1]; 
         if (!token) {
             return res.status(403).json({ message: "Token missing" , success: false});
         }
-        const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload; // Decode the token
+        const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload; 
         if (!decoded || !decoded.id) {
             return res.status(403).json({ message: "Invalid token" , success: false});
         }
         const id = decoded.id;
         if (isNaN(id)) {
-            return res.status(400).json({ message: "Invalid ID format", success: false }); // Check if id is a valid number
+            return res.status(400).json({ message: "Invalid ID format", success: false }); 
         }
         try {
-            const userDetails = await prismaClient.user.findUnique({ 
+            const userDetails = await client.user.findUnique({ 
                 where: { id },                  
             });
             if (userDetails) {

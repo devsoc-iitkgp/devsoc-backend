@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { createProject, deleteProject, fetchAllProjects, getProjectBySlug, updateProject } from "../controllers/projects";
+import { createProject, deleteProject, getAllProjects, getMyProjects, getProjectBySlug, getUserProjects, updateProject } from "../controllers/projects";
 import { authMiddleware } from "../middlewares/auth";
 
 const projectRouter:Router = Router();
-projectRouter.post('/createproject', authMiddleware, createProject);
-projectRouter.put('/updateproject/:slug',authMiddleware,updateProject);
-projectRouter.delete('/deleteproject/:slug',authMiddleware,deleteProject);
-projectRouter.get('/',fetchAllProjects);
+projectRouter.post('/create', authMiddleware, createProject);
+projectRouter.put('/update/:slug',authMiddleware,updateProject);
+projectRouter.delete('/delete/:slug',authMiddleware,deleteProject);
+projectRouter.get('/myprojects',authMiddleware,getMyProjects);
+projectRouter.get('/',getAllProjects);
 projectRouter.get('/:slug',getProjectBySlug);
+projectRouter.get('/userprojects/:username',getUserProjects);
 
 export default projectRouter;

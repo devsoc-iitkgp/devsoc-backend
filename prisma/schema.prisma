@@ -25,7 +25,7 @@ model User {
   projects     Project[] @relation("UserProjects")  // Projects owned by the user
   memberOf     Project[] @relation("ProjectMembers") // Projects where the user is a member
   requests     Project[] @relation("ProjectRequests") // Projects where the user has requested to join
-  blogs        Blog[] @relation("UserBlogs")         //Blogs owned by the user 
+  blogs        Blog[]    @relation("UserBlogs")       //Blogs owned by the user 
 }
 
 model Project {
@@ -63,6 +63,6 @@ model Blog {
 
   //Relations
 
-  owner        User      @relation("UserBlogs", fields: [ownerId], references: [id]) // Owner of the project
+  owner        User      @relation("UserBlogs", fields: [ownerId], references: [id]) // Owner of the blog
   ownerId      Int
 }

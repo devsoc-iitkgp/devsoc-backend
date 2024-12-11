@@ -194,7 +194,38 @@ const removeBookmark = async (req: Request, res: Response) => {
     }
 };
 
+const sendRequest = async(req:Request,res:Response)=>{
+    try{
+        const userId= req.user.id;
+        const projectId = req.body.projectId;
+        if(!projectId){
+            return res.status(400).json({
+                success : false,
+                message:"Project not found"
+            })
+        }
+        const projectRequested = await client.user.update({
+            where : {id:userId},
+            data: {
+                requests: {
+                    connect : {id : projectId},
+                }
+            },
+            include : {requests:true}
+        });
+        return res.status(200).json({
+            success : true,
+            data:projectRequested
+        })
+    }catch(error){
+        console.error("Error sending request:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
 
-export {signup,signin,fetchUserDetails,userUpdate,addBookmark,removeBookmark};
+
+
+
+export {signup,signin,fetchUserDetails,userUpdate,addBookmark,removeBookmark,sendRequest};
 
 

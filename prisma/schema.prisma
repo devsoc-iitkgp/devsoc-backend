@@ -18,7 +18,7 @@ model User {
   institute    String
   yearOfStudy  Int
   interests    String[] 
-  isAdmin      Boolean
+  isAdmin      Boolean  @default(false)
 
   // Relations
   bookmarks    Project[] @relation("UserBookmarks") // Projects bookmarked by the user
@@ -30,7 +30,7 @@ model User {
 
 model Project {
   id           Int       @id @default(autoincrement())
-  slug         String    @unique @default("")
+  slug         String    @unique
   projectName  String    @db.VarChar(50)
   description  String    @db.VarChar(700)
   tags         String[]

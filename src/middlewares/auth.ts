@@ -30,9 +30,6 @@ async function authMiddleware(req: Request, res: Response, next: NextFunction) {
             return res.status(403).json({ message: "Invalid token" , success: false});
         }
         const id = decoded.id;
-        if (isNaN(id)) {
-            return res.status(400).json({ message: "Invalid ID format", success: false }); 
-        }
         try {
             const userDetails = await client.user.findUnique({ 
                 where: { id },                  

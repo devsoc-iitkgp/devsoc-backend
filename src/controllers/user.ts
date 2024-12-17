@@ -19,7 +19,7 @@ const signup = async (req: Request, res: Response) => {
         const { name, username, mobile, email, password, institute, yearOfStudy, interests, isAdmin } = parseResult.data;
         if (!email.endsWith("@iitkgp.ac.in")) {
             return res.status(400).json({
-                message: "Email must end with @iitkgp.ac.in",
+                message: "Please enter Institute Email Address",
                 success: false,
             });
         }
@@ -222,7 +222,6 @@ const sendRequest = async(req:Request,res:Response)=>{
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
-
 
 
 

@@ -20,10 +20,9 @@ const signupBody = zod.object({
         .string()
         .min(6, "Password must be at least 6 characters long")
         .max(50, "Password must be 50 characters or fewer"),
-    institute: zod
-        .string()
-        .min(1, "Institute is required")
-        .max(100, "Institute name must be 100 characters or fewer"),
+    institute: zod.enum(["IIT Kharagpur"], {
+        errorMap: () => ({ message: "Institute must be IIT Kharagpur" }),
+    }),
     yearOfStudy: zod
         .number()
         .min(1, "Year of study must be at least 1")
@@ -66,6 +65,8 @@ const projectBaseSchema = zod.object({
         .string()
         .min(1, "Project name is required")
         .max(50, "Project name must be 50 characters or fewer"),
+    slug: zod
+        .string(),
     description: zod
         .string()
         .min(1, "Description is required")
@@ -83,15 +84,15 @@ const projectBaseSchema = zod.object({
 });
 
 const createProjectSchema = projectBaseSchema;
-const updateProjectSchema = projectBaseSchema.extend({
-    slug: zod.string().optional(), 
-})
+const updateProjectSchema = projectBaseSchema;
 
 const blogBaseSchema = zod.object({
     blogName: zod
         .string()
         .min(1, "Blog name is required")
         .max(50, "Blog name must be 50 characters or fewer"),
+    slug: zod
+        .string(),
     content: zod
         .string()
         .min(1, "Content is required")
@@ -110,10 +111,14 @@ const blogBaseSchema = zod.object({
 });
 
 const createBlogSchema = blogBaseSchema;
-const updateBlogSchema = blogBaseSchema.extend({
-    slug: zod.string().optional()
-})
+const updateBlogSchema = blogBaseSchema;
 
-
-
-export { signupBody,signinBody,updateUserBody,createProjectSchema,updateProjectSchema,createBlogSchema,updateBlogSchema };
+export {
+    signupBody,
+    signinBody,
+    updateUserBody,
+    createProjectSchema,
+    updateProjectSchema,
+    createBlogSchema,
+    updateBlogSchema,
+};

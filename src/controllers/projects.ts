@@ -4,10 +4,6 @@ import { createProjectSchema, updateProjectSchema } from "../Validation/ZodValid
 
 const client = new PrismaClient();
 
-const generateSlug = (projectName: string): string => {
-    return projectName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-};
-
 const createProject = async (req: Request, res: Response) => {
     const userId = req.user.id;
     try {
@@ -16,10 +12,10 @@ const createProject = async (req: Request, res: Response) => {
             return res.status(400).json({
                 success: false,
                 message: "Validation failed",
+                errors:parseResult.error.issues
             });
         }
-        const { projectName, description, tags, capacity, thumbnail } = parseResult.data;
-        const slug = generateSlug(projectName);
+        const { projectName, description, tags, capacity, thumbnail,slug } = parseResult.data;
         const existingProject = await client.project.findFirst({
             where: {
                 slug: slug,
@@ -64,7 +60,8 @@ const updateProject = async (req: Request, res: Response) => {
         if (!parseResult.success) {
             return res.status(400).json({
                 success: false,
-                message: "Error while validating inputs", 
+                message: "Error while validating inputs",
+                errors:parseResult.error.issues 
             });
         }
         const project = await client.project.findUnique({
@@ -83,9 +80,6 @@ const updateProject = async (req: Request, res: Response) => {
             });
         }
         let updatedData = parseResult.data;
-        if (updatedData.projectName && updatedData.projectName !== project.projectName) {
-            updatedData.slug = generateSlug(updatedData.projectName); // Add slug generation
-        }
         const updatedProject = await client.project.update({
             where: { slug:slug },
             data: updatedData, 
@@ -156,25 +150,6 @@ const getAllProjects = async (req: Request, res: Response) => {
     }
 };
 
-const getMyProjects = async (req: Request, res: Response) => {
-    const userId = req.user.id; 
-    try {
-        const myprojects = await client.project.findMany({
-            where: { ownerId: userId },
-        });
-        return res.status(200).json({
-            success: true,
-            message: "Projects fetched successfully",
-            data: myprojects,
-        });
-    } catch (error) {
-        console.error("Error while fetching user projects:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
-    }
-};
 
 const getProjectBySlug = async (req:Request, res:Response) => {
     try {
@@ -236,4 +211,4 @@ const getUserProjects = async (req: Request, res: Response) => {
 };
 
 
-export {createProject,updateProject,deleteProject,getAllProjects,getProjectBySlug,getMyProjects,getUserProjects}
+export {createProject,updateProject,deleteProject,getAllProjects,getProjectBySlug,getUserProjects}

@@ -6,10 +6,6 @@ import { createBlogSchema, updateBlogSchema } from "../Validation/ZodValidation"
 
 const client = new PrismaClient();
 
-const generateSlug = (blogName: string): string => {
-    return blogName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-};
-
 const createBlog = async (req:Request,res:Response) => {
     const userId = req.user.id;
     const body = req.body;
@@ -19,10 +15,10 @@ const createBlog = async (req:Request,res:Response) => {
             return res.status(400).json({
                 success:false,
                 message:"Validation Failed",
+                errors:parseResult.error.issues
             })
         }
-        const { blogName,content,tagline,author,thumbnail } = parseResult.data;
-        const slug = generateSlug(blogName);
+        const { blogName,content,tagline,author,thumbnail,slug } = parseResult.data;
         const existingBlog = await client.blog.findFirst({
             where: {
                 slug : slug
@@ -67,7 +63,8 @@ const updateBlog = async(req:Request,res:Response) => {
         if(!parseResult.success){
             return res.status(400).json({
                 success : false,
-                message : "Error while validating inputs"
+                message : "Error while validating inputs",
+                errors:parseResult.error.issues
             })
         }
         const blog = await client.blog.findUnique({
@@ -88,9 +85,6 @@ const updateBlog = async(req:Request,res:Response) => {
             })
         }
         let updatedData=parseResult.data;
-        if(updatedData.blogName && updatedData.blogName!=blog.blogName){
-            updatedData.slug = generateSlug(updatedData.blogName);
-        }
         const updatedBlog = await client.blog.update({
             where : {slug : slug},
             data : updatedData
@@ -164,28 +158,6 @@ const getAllBlogs = async ( req:Request,res:Response) => {
     }
 }
 
-const getMyBlogs = async(req:Request,res:Response) =>{
-    try{
-        const userId = req.user.id;
-        const myBlogs = await client.blog.findMany({
-            where : {
-                ownerId : userId
-            }
-        })
-        return res.status(200).json({
-            success: true,
-            message : "Blogs fetched succesfully",
-            data: myBlogs
-        });
-    }catch(error){
-        console.error("Error fetching Blogs",error),
-        res.status(500).json({
-            success:false,
-            message:"Internal Server Error"
-        })
-    }
-}
-
 const getBlogByslug = async (req:Request,res:Response)=>{
     try{
         const slug=req.params.slug;
@@ -247,4 +219,4 @@ const getUserBlogs = async (req:Request,res:Response)=>{
     }
 }
 
-export {createBlog,updateBlog,deleteBlog,getAllBlogs,getMyBlogs,getBlogByslug,getUserBlogs}
+export {createBlog,updateBlog,deleteBlog,getAllBlogs,getBlogByslug,getUserBlogs}

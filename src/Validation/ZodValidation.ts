@@ -60,7 +60,7 @@ const updateUserBody = zod.object({
         .optional(),
 });
 
-const projectBaseSchema = zod.object({
+const projectSchema = zod.object({
     projectName: zod
         .string()
         .min(1, "Project name is required")
@@ -82,9 +82,6 @@ const projectBaseSchema = zod.object({
         .string()
         .url("Thumbnail must be a valid URL"),
 });
-
-const createProjectSchema = projectBaseSchema;
-const updateProjectSchema = projectBaseSchema;
 
 const blogBaseSchema = zod.object({
     blogName: zod
@@ -117,8 +114,7 @@ export {
     signupBody,
     signinBody,
     updateUserBody,
-    createProjectSchema,
-    updateProjectSchema,
+    projectSchema,
     createBlogSchema,
     updateBlogSchema,
 };

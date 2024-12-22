@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { createProjectSchema, updateProjectSchema } from "../Validation/ZodValidation"; // Assuming validation file
+import { projectSchema } from "../Validation/ZodValidation"; // Assuming validation file
 
 const client = new PrismaClient();
 
 const createProject = async (req: Request, res: Response) => {
     const userId = req.user.id;
     try {
-        const parseResult = createProjectSchema.safeParse(req.body);
+        const parseResult = projectSchema.safeParse(req.body);
         if (!parseResult.success) {
             return res.status(400).json({
                 success: false,
@@ -56,7 +56,7 @@ const updateProject = async (req: Request, res: Response) => {
     const slug = req.params.slug
     try {
         const body = req.body;
-        const parseResult = updateProjectSchema.safeParse(body);
+        const parseResult = projectSchema.safeParse(body);
         if (!parseResult.success) {
             return res.status(400).json({
                 success: false,
@@ -65,18 +65,15 @@ const updateProject = async (req: Request, res: Response) => {
             });
         }
         const project = await client.project.findUnique({
-            where: { slug:slug },
+            where: {
+                ownerId: userId,
+                slug: slug,
+            },
         });
         if (!project) {
             return res.status(404).json({
                 success: false,
                 message: "Project not found",
-            });
-        }
-        if (project.ownerId !== userId) {
-            return res.status(403).json({
-                success: false,
-                message: "You are not authorized to update this project",
             });
         }
         let updatedData = parseResult.data;
@@ -118,7 +115,10 @@ const deleteProject = async (req: Request, res: Response) => {
             });
         }
         await client.project.delete({
-            where: { slug: slug }, 
+            where: {
+                ownerId: userId,
+                slug: slug
+            }, 
         });
         return res.status(200).json({
             success: true,
@@ -153,9 +153,21 @@ const getAllProjects = async (req: Request, res: Response) => {
 
 const getProjectBySlug = async (req:Request, res:Response) => {
     try {
+        const username = req.params.username;
         const slug = req.params.slug;
+        if (!username || !slug) {
+            return res.status(400).json({
+                success: false,
+                message: "Username and project are required",
+            });
+        }
         const project = await client.project.findUnique({
-            where: { slug: slug },
+            where: { 
+                slug: slug,
+                owner: {
+                    username: username,
+                }
+            },
         });
         if (!project) {
             return res.status(404).json({

@@ -146,6 +146,20 @@ const userUpdate = async (req: Request, res: Response) => {
     }
 };
 
+const getBookmarks = async (req: Request, res: Response) => {
+    const userId = req.user.id; // Assuming the user ID is set in the request by a middleware
+    try {
+        const user = await client.user.findUnique({
+            where: { id: userId },
+            include: { bookmarks: true }, // Include the bookmarks in the response
+        });
+        return res.status(200).json({ success: true, data: user!.bookmarks });
+    } catch (error) {
+        console.error("Error fetching bookmarks:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+
 const addBookmark = async (req: Request, res: Response) => {
     const userId = req.user.id; // Assuming the user ID is set in the request by a middleware
     const projectId = req.body.projectId;
@@ -225,6 +239,6 @@ const sendRequest = async(req:Request,res:Response)=>{
 
 
 
-export {signup,signin,fetchUserDetails,userUpdate,addBookmark,removeBookmark,sendRequest};
+export {signup,signin,fetchUserDetails,userUpdate,getBookmarks,addBookmark,removeBookmark,sendRequest};
 
 

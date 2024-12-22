@@ -7,8 +7,8 @@ projectRouter.post('/create', authMiddleware, createProject);
 projectRouter.put('/:slug',authMiddleware,updateProject);
 projectRouter.delete('/:slug',authMiddleware,deleteProject);
 projectRouter.get('/',getAllProjects);
-projectRouter.get('/:slug',getProjectBySlug);
-projectRouter.get('/projects/:username',getUserProjects)
+projectRouter.get('/:username/:slug',getProjectBySlug);
+projectRouter.get('/:username',getUserProjects)
 
 
 export default projectRouter;

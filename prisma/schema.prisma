@@ -30,7 +30,7 @@ model User {
 
 model Project {
   id           Int       @id @default(autoincrement())
-  slug         String    @unique
+  slug         String
   projectName  String    @db.VarChar(50)
   description  String    @db.VarChar(700)
   tags         String[]
@@ -48,6 +48,8 @@ model Project {
   members      User[]    @relation("ProjectMembers")  // Users who are members
   requests     User[]    @relation("ProjectRequests") // Users who have requested to join
   bookmarkedBy User[]    @relation("UserBookmarks")   // Users who have bookmarked the project
+
+  @@unique([ownerId, slug])
 }
 
 model Blog {
